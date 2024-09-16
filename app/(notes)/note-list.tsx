@@ -2,18 +2,18 @@ import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-nati
 import { Link } from 'expo-router';
 import { Note } from '@/types/note';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getNotes, removeNote } from '@/api/note-api';
+import { noteTable } from '@/api';
 
 export default function NoteListScreen() {
 	const queryClient = useQueryClient();
 
 	const {data, isLoading, isError, isSuccess, error} = useQuery({
-		queryFn:getNotes,
+		queryFn:()=>noteTable.getAll(),
 		queryKey:["notes"],
 	});
 
 	const { mutate } = useMutation({
-		mutationFn:removeNote,
+		mutationFn:(id:number)=>noteTable.remove(id),
 		onSuccess:()=>{
 			console.log("Hello");
 			queryClient.invalidateQueries({ queryKey:["notes"] })

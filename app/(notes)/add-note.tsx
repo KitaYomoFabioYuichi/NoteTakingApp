@@ -1,4 +1,4 @@
-import { addNote } from "@/api/note-api";
+import { noteTable } from "@/api";
 import NoteEditor from "@/components/notes/note-editor";
 import { Note } from "@/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ export default function AddNoteScreen(){
     const queryClient = useQueryClient();
 
     const {mutate} = useMutation({
-        mutationFn:addNote,
+        mutationFn:(data:Omit<Note, "id">)=>noteTable.add(data),
         onSuccess:()=>{
             queryClient.invalidateQueries({queryKey:["notes"]}),
             router.navigate("/note-list")

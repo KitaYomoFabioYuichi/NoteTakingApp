@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-type ColumnType = "TEXT"|"NUMERIC"|"BOOLEAN"|"DATETIME";
+type ColumnType = "TEXT"|"NUMERIC"|"DATETIME";
 
 type ColumnData = {
     name:string,
@@ -52,12 +52,20 @@ class Table<T extends {[key:string]:any}> {
 
     async get(id:number){
         const db:SQLite.SQLiteDatabase = this.db.db;
-        return await db.getFirstAsync(`SELECT * FROM ${this.name} WHERE id=${id}`) as T;
+        const query = `SELECT * FROM ${this.name} WHERE id=${id}`;
+
+        console.log(query);
+        
+        return await db.getFirstAsync(query) as T;
     }
 
     async getAll(){
         const db:SQLite.SQLiteDatabase = this.db.db;
-        return await db.getAllAsync(`SELECT * FROM ${this.name}`) as T[];
+        const query = `SELECT * FROM ${this.name}`;
+
+        console.log(query);
+
+        return await db.getAllAsync(query) as T[];
     }
 
     async add(data:Omit<T, "id">){
@@ -111,12 +119,13 @@ export class DB{
         this.tables = {};
     }
 
-    createTable<T extends {}>(name:string, columns:ColumnData[]){
+    createTable<T extends {[key:string]:any}>(name:string, columns:ColumnData[]){
         let newTable = new Table<T>(this, name, columns);
         this.tables[name] = newTable;
+        return newTable;
     }
 
-    getTable<T extends {}>(name:string){
+    getTable<T extends {[key:string]:any}>(name:string){
         return this.tables[name] as Table<T>;
     }
 
