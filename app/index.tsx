@@ -5,7 +5,7 @@ export default function HomeScreen() {
 	return (
 		<View style={styles.container}>
 			<Text>Home</Text>
-			<Link href={"/notes"}>Go to Notes</Link>
+			<Link href={"/(notes)/note-list"}>Go to Notes</Link>
 		</View>
 	);
 }
