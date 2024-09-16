@@ -20,8 +20,11 @@ export default function EditNoteScreen(){
     const { mutate } = useMutation({
         mutationFn: (noteData:Omit<Note, "id">)=>setNote(idAsNumber, noteData),
         onSuccess: ()=>{
-            queryClient.invalidateQueries({queryKey:["notes", idAsNumber]});
+            queryClient.invalidateQueries({queryKey:["notes"]});
             router.navigate("/note-list");
+        },
+        onError: (error)=>{
+            console.log(error);
         }
     })
 
@@ -42,7 +45,7 @@ export default function EditNoteScreen(){
                 mutate({...newNote, lastUpdateTime:new Date()});
             }}>
                 <Text>
-                    Add Note
+                    Edit Note
                 </Text>
             </Pressable>
             <NoteEditor note={newNote} setNote={setNewNote}/>

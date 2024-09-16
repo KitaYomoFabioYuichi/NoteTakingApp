@@ -14,6 +14,9 @@ export default function AddNoteScreen(){
         onSuccess:()=>{
             queryClient.invalidateQueries({queryKey:["notes"]}),
             router.navigate("/note-list")
+        },
+        onError:(error)=>{
+            console.log(error);
         }
     })
 

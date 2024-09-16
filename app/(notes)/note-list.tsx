@@ -1,9 +1,8 @@
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { Note } from '@/types/note';
-import { QueryCache, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getNotes, removeNote } from '@/api/note-api';
-import { useEffect } from 'react';
 
 export default function NoteListScreen() {
 	const queryClient = useQueryClient();
