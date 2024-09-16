@@ -39,7 +39,7 @@ export async function getNotes(){
     return notes;
 }
 
-export async function setNotes(id:number, noteData:Omit<Note, "id">){
+export async function setNote(id:number, noteData:Omit<Note, "id">){
     let index = getNoteIndex(id);
     if(index === -1) return undefined;
 

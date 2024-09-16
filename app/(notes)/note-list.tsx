@@ -6,10 +6,20 @@ import { getNotes, removeNote } from '@/api/note-api';
 import { useEffect } from 'react';
 
 export default function NoteListScreen() {
+	const queryClient = useQueryClient();
+
 	const {data, isLoading, isError, isSuccess, error} = useQuery({
 		queryFn:getNotes,
 		queryKey:["notes"],
 	});
+
+	const { mutate } = useMutation({
+		mutationFn:removeNote,
+		onSuccess:()=>{
+			console.log("Hello");
+			queryClient.invalidateQueries({ queryKey:["notes"] })
+		}
+	})
 	
 	return (
 		<View style={styles.container}>
@@ -18,7 +28,7 @@ export default function NoteListScreen() {
 				<Link href={"/add-note"}>Add Note</Link>
 				{isLoading&&<Text>Loading...</Text>}
 				{isError&&<Text>{"Error" + error.message}</Text>}
-				{isSuccess&&data.map(n=><NoteEntry key={n.id} note={n}/>)}
+				{isSuccess&&data.map(n=><NoteEntry key={n.id} note={n} handleDelete={()=>mutate(n.id)}/>)}
 			</ScrollView>
 		</View>
 	);
@@ -33,22 +43,14 @@ const styles = StyleSheet.create({
 
 
 type NoteEntryProps = {
-	note:Note
+	note:Note,
+	handleDelete:()=>void
 }
 
 function NoteEntry({
-	note
+	note,
+	handleDelete
 }:NoteEntryProps){
-	const queryClient = useQueryClient();
-
-	const { mutate } = useMutation({
-		mutationFn:removeNote,
-		onSuccess:()=>{
-			console.log("Hello");
-			queryClient.invalidateQueries({ queryKey:["notes"] })
-		}
-	})
-
 	const handleDeletePress = ()=>{
 		Alert.alert('Delete Note', 'Are you sure you want to delete this Note?', [
 			{
@@ -60,7 +62,7 @@ function NoteEntry({
 				text: 'OK', 
 				onPress: () => {
 					console.log('OK Pressed, Deleted ' + note.id);
-					mutate(note.id)
+					handleDelete()
 				}
 			},
 		]);

@@ -1,4 +1,6 @@
 import { addNote } from "@/api/note-api";
+import NoteEditor from "@/components/notes/note-editor";
+import { Note } from "@/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -15,25 +17,18 @@ export default function AddNoteScreen(){
         }
     })
 
-    const [content, setContent] = useState("");
-
+    const [newNote, setNewNote] = useState<Omit<Note, "id">>({ content:"" });
 
     return <View style={styles.container}>
-        <Pressable onPress={e=>{
+        <Pressable onPress={()=>{
             Keyboard.dismiss();
-            mutate({
-                content,
-                createTime: new Date(),
-                lastUpdateTime: new Date()
-            });
+            mutate({...newNote, createTime:new Date(), lastUpdateTime:new Date()});
         }}>
             <Text>
                 Add Note
             </Text>
         </Pressable>
-        <View style={styles.textEditor}>
-            <TextInput editable multiline value={content} onChangeText={setContent}/>
-        </View>
+        <NoteEditor note={newNote} setNote={setNewNote}/>
     </View>
 }
 
@@ -41,9 +36,5 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
         padding:50
-	},
-    textEditor: {
-        backgroundColor:"#FFFFFF",
-
-    }
+	}
 });
