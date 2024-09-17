@@ -15,7 +15,6 @@ export default function NoteListScreen() {
 	const { mutate } = useMutation({
 		mutationFn:noteTable.remove,
 		onSuccess:()=>{
-			console.log("Hello");
 			queryClient.invalidateQueries({ queryKey:["notes"] })
 		}
 	})
@@ -54,15 +53,11 @@ function NoteEntry({
 		Alert.alert('Delete Note', 'Are you sure you want to delete this Note?', [
 			{
 				text: 'Cancel',
-				onPress: () => console.log('Cancel Pressed'),
 				style: 'cancel',
 			},
 			{
 				text: 'OK', 
-				onPress: () => {
-					console.log('OK Pressed, Deleted ' + note.id);
-					handleDelete()
-				}
+				onPress: handleDelete
 			},
 		]);
 	}

@@ -4,7 +4,7 @@ import { Note } from "@/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function AddNoteScreen(){
     const queryClient = useQueryClient();
