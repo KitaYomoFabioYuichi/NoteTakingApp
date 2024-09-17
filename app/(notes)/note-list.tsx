@@ -7,7 +7,7 @@ import { noteTable } from '@/api';
 export default function NoteListScreen() {
 	const queryClient = useQueryClient();
 
-	const {data, isLoading, isError, isSuccess, error} = useQuery({
+	const {data, isLoading, error} = useQuery({
 		queryFn:noteTable.getAll,
 		queryKey:["notes"],
 	});
@@ -26,8 +26,8 @@ export default function NoteListScreen() {
 				<Text>Notes</Text>
 				<Link href={"/add-note"}>Add Note</Link>
 				{isLoading&&<Text>Loading...</Text>}
-				{isError&&<Text>{"Error" + error.message}</Text>}
-				{isSuccess&&data.map(n=><NoteEntry key={n.id} note={n} handleDelete={()=>mutate(n.id)}/>)}
+				{error&&<Text>{"Error" + error.message}</Text>}
+				{data&&data.map(n=><NoteEntry key={n.id} note={n} handleDelete={()=>mutate(n.id)}/>)}
 			</ScrollView>
 		</View>
 	);
