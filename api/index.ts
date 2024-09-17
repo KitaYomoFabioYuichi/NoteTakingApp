@@ -1,5 +1,6 @@
-import { DB } from "./db";
+
 import { Note } from '@/types/note';
+import { DB } from './db';
 
 const db = new DB("db.db");
 

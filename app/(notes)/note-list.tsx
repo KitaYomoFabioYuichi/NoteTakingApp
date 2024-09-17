@@ -8,12 +8,12 @@ export default function NoteListScreen() {
 	const queryClient = useQueryClient();
 
 	const {data, isLoading, isError, isSuccess, error} = useQuery({
-		queryFn:()=>noteTable.getAll(),
+		queryFn:noteTable.getAll,
 		queryKey:["notes"],
 	});
 
 	const { mutate } = useMutation({
-		mutationFn:(id:number)=>noteTable.remove(id),
+		mutationFn:noteTable.remove,
 		onSuccess:()=>{
 			console.log("Hello");
 			queryClient.invalidateQueries({ queryKey:["notes"] })

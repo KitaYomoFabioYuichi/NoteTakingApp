@@ -19,7 +19,7 @@ class Column{
         this.notNull = notNull;
     }
 
-    toCreateTableParameter(){
+    toCreateTableParameter = ()=>{
         return `${this.name} ${this.type} ${this.notNull?"NOT NULL":""}`
     }
 }
@@ -37,20 +37,20 @@ class Table<T extends {[key:string]:any}> {
         this.create();
     }
 
-    private create(){
+    private create = ()=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         console.log(this.toCreateString());
         db.withTransactionSync(()=>db.execSync(this.toCreateString()));
     }
 
-    private toCreateString(){
+    private toCreateString = ()=>{
         return `CREATE TABLE IF NOT EXISTS ${this.name} (
             id INTEGER PRIMARY KEY,
             ${this.columns.map(c=>c.toCreateTableParameter())}
         );`;
     }
 
-    async get(id:number){
+    get = async (id:number)=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         const query = `SELECT * FROM ${this.name} WHERE id=${id}`;
 
@@ -59,7 +59,7 @@ class Table<T extends {[key:string]:any}> {
         return await db.getFirstAsync(query) as T;
     }
 
-    async getAll(){
+    getAll = async ()=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         const query = `SELECT * FROM ${this.name}`;
 
@@ -68,7 +68,7 @@ class Table<T extends {[key:string]:any}> {
         return await db.getAllAsync(query) as T[];
     }
 
-    async add(data:Omit<T, "id">){
+    add = async (data:Omit<T, "id">)=>{
         const keys = this.getKeysIfExistsInsideColumns(data);
         const setQueryParams = keys.map(k=>`"${data[k]}"`);
 
@@ -81,14 +81,14 @@ class Table<T extends {[key:string]:any}> {
         })
     }
 
-    async remove(id:number){
+    remove = async (id:number)=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         return await db.withTransactionAsync(async ()=>{
             await db.execAsync(`DELETE FROM ${this.name} WHERE id = ${id}`)
         })
     }
 
-    async set(id:number, data:Omit<T, "id">){
+    set = async (id:number, data:Omit<T, "id">)=>{
         const keys = this.getKeysIfExistsInsideColumns(data);
         const setQueryParams = keys.map(k=>`${k}="${data[k]}"`);
 
@@ -119,17 +119,17 @@ export class DB{
         this.tables = {};
     }
 
-    createTable<T extends {[key:string]:any}>(name:string, columns:ColumnData[]){
+    createTable = <T extends {[key:string]:any}>(name:string, columns:ColumnData[])=>{
         let newTable = new Table<T>(this, name, columns);
         this.tables[name] = newTable;
         return newTable;
     }
 
-    getTable<T extends {[key:string]:any}>(name:string){
+    getTable = <T extends {[key:string]:any}>(name:string)=>{
         return this.tables[name] as Table<T>;
     }
 
-    close(){
+    close = ()=>{
         this.db.closeSync();
         SQLite.deleteDatabaseSync(this.name);
     }
