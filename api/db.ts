@@ -1,5 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
+type KeyValue = { [key:string]:any }
+
 type ColumnType = "TEXT"|"NUMERIC"|"DATETIME"|"BOOLEAN";
 
 type ColumnData = {
@@ -7,8 +9,6 @@ type ColumnData = {
     type:ColumnType,
     notNull?:boolean
 }
-
-type KeyValue = { [key:string]:any }
 
 abstract class Column{
     name:string;
@@ -52,15 +52,17 @@ class PrimaryColumn extends Column{
 
 class BooleanColumn extends Column{
     toCreateTableParameter(): string {
-        throw new Error('Method not implemented.');
+        return `${this.name} INTEGER` + (this.notNull?" NOT NULL":""); 
     }
 
     dbValueToValue = (realValue: any)=>{
-        throw new Error("not implemented");
+        if(realValue == 1) return true;
+        return false;
     }
 
     valueToDbValue = (value:any):any=>{
-        throw new Error("not implemented");
+        if(value) return 1;
+        return 0;
     }
 }
 
@@ -81,6 +83,7 @@ class Table<T extends KeyValue>{
                 case 'TEXT':this.columns.push(new TextColumn(c.name, c.notNull));break;
                 case 'NUMERIC':this.columns.push(new NumericColumn(c.name, c.notNull));break;
                 case 'DATETIME':this.columns.push(new DateTimeColumn(c.name, c.notNull));break;
+                case 'BOOLEAN':this.columns.push(new BooleanColumn(c.name, c.notNull));break;
             }
         })
 
