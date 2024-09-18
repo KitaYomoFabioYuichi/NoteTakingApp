@@ -1,6 +1,8 @@
 import * as SQLite from 'expo-sqlite';
 
-type ColumnType = "TEXT"|"NUMERIC"|"DATETIME";
+type KeyValue = { [key:string]:any }
+
+type ColumnType = "TEXT"|"NUMERIC"|"DATETIME"|"BOOLEAN";
 
 type ColumnData = {
     name:string,
@@ -8,23 +10,63 @@ type ColumnData = {
     notNull?:boolean
 }
 
-class Column{
+abstract class Column{
     name:string;
-    type:ColumnType;
     notNull:boolean;
 
-    constructor(name:string, type:ColumnType, notNull:boolean = false){
+    constructor(name:string, notNull:boolean = false){
         this.name = name;
-        this.type = type;
         this.notNull = notNull;
     }
 
-    toCreateTableParameter = ()=>{
-        return `${this.name} ${this.type} ${this.notNull?"NOT NULL":""}`
+    abstract toCreateTableParameter():string;
+
+    dbValueToValue = (realValue:any):any=>realValue;
+
+    valueToDbValue = (value:any):any=>value;
+}
+
+class TextColumn extends Column{
+    toCreateTableParameter(): string {
+        return `${this.name} TEXT` + (this.notNull?" NOT NULL":"");
     }
 }
 
-class Table<T extends {[key:string]:any}> {
+class NumericColumn extends Column{
+    toCreateTableParameter(): string {
+        return `${this.name} NUMBER` + (this.notNull?" NOT NULL":"");
+    }
+}
+
+class DateTimeColumn extends Column{
+    toCreateTableParameter(): string {
+        return `${this.name} DATETIME` + (this.notNull?" NOT NULL":"");
+    }
+}
+
+class PrimaryColumn extends Column{
+    toCreateTableParameter(): string {
+        return `${this.name} INTEGER PRIMARY KEY` + (this.notNull?" NOT NULL":""); 
+    }
+}
+
+class BooleanColumn extends Column{
+    toCreateTableParameter(): string {
+        return `${this.name} INTEGER` + (this.notNull?" NOT NULL":""); 
+    }
+
+    dbValueToValue = (realValue: any)=>{
+        if(realValue == 1) return true;
+        return false;
+    }
+
+    valueToDbValue = (value:any):any=>{
+        if(value) return 1;
+        return 0;
+    }
+}
+
+class Table<T extends KeyValue>{
     db:DB;
     name:string;
     columns:Column[];
@@ -32,79 +74,106 @@ class Table<T extends {[key:string]:any}> {
     constructor(db:DB, name:string, columns:ColumnData[]){
         this.db = db;
         this.name = name;
-        this.columns = columns.map(c=> new Column(c.name, c.type, c.notNull));
+        
+        this.columns = [];
+
+        this.columns.push(new PrimaryColumn("id"));
+        columns.forEach(c=>{
+            switch(c.type){
+                case 'TEXT':this.columns.push(new TextColumn(c.name, c.notNull));break;
+                case 'NUMERIC':this.columns.push(new NumericColumn(c.name, c.notNull));break;
+                case 'DATETIME':this.columns.push(new DateTimeColumn(c.name, c.notNull));break;
+                case 'BOOLEAN':this.columns.push(new BooleanColumn(c.name, c.notNull));break;
+            }
+        })
 
         this.create();
     }
 
     private create = ()=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
-        console.log(this.toCreateString());
-        db.withTransactionSync(()=>db.execSync(this.toCreateString()));
+        db.withTransactionSync(()=>{
+            db.execSync(`CREATE TABLE IF NOT EXISTS ${this.name}(${this.columns.map(c=>c.toCreateTableParameter())});`)
+        });
     }
 
-    private toCreateString = ()=>{
-        return `CREATE TABLE IF NOT EXISTS ${this.name} (
-            id INTEGER PRIMARY KEY,
-            ${this.columns.map(c=>c.toCreateTableParameter())}
-        );`;
-    }
-
-    get = async (id:number)=>{
+    get = async(id:number)=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         const query = `SELECT * FROM ${this.name} WHERE id=${id}`;
 
         console.log(query);
         
-        return await db.getFirstAsync(query) as T;
+
+        const dbResult = await db.getFirstAsync(query) as KeyValue;
+        return this.parseDbDataToData(dbResult);
     }
 
-    getAll = async ()=>{
+    getAll = async()=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         const query = `SELECT * FROM ${this.name}`;
 
         console.log(query);
+        
 
-        return await db.getAllAsync(query) as T[];
+        const dbResult = await db.getAllAsync(query) as KeyValue[];
+        return dbResult.map(dbr=>this.parseDbDataToData(dbr));
     }
 
-    add = async (data:Omit<T, "id">)=>{
-        const keys = this.getKeysIfExistsInsideColumns(data);
-        const setQueryParams = keys.map(k=>`"${data[k]}"`);
-
-        const query = `INSERT INTO tb_notes(${keys}) VALUES(${setQueryParams});`;
-        console.log(query);
+    add = async(data:Omit<T, "id">)=>{
+        const dbData = this.parseDataToDbData({...data});
 
         const db:SQLite.SQLiteDatabase = this.db.db;
-        await db.withTransactionAsync(async ()=>{
-            await db.runAsync(query)
-        })
+
+        const props = Object.keys(dbData).join(", ");
+        const values = Object.values(dbData).map(v=>`"${v}"`).join(", ");
+        const query = `INSERT INTO ${this.name}(${props}) VALUES(${values})`;
+
+        console.log(query);
+
+        await db.withTransactionAsync(async ()=>await db.execAsync(query));
     }
 
     remove = async (id:number)=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
-        return await db.withTransactionAsync(async ()=>{
-            await db.execAsync(`DELETE FROM ${this.name} WHERE id = ${id}`)
-        })
+        const query = `DELETE FROM ${this.name} WHERE id=${id}`;
+        console.log(query);
+
+        await db.withTransactionAsync(async ()=>await db.execAsync(query));
     }
 
     set = async (id:number, data:Omit<T, "id">)=>{
-        const keys = this.getKeysIfExistsInsideColumns(data);
-        const setQueryParams = keys.map(k=>`${k}="${data[k]}"`);
+        const dbData = this.parseDataToDbData(data);
+        delete dbData["id"];
 
-        const query = `UPDATE tb_notes SET ${setQueryParams} WHERE id = ${id};`;
-        console.log(query);
-
+        const props = Object.entries(dbData).map(([key, value])=>`${key}="${value}"`).join(", ")
         const db:SQLite.SQLiteDatabase = this.db.db;
-        await db.withTransactionAsync(async ()=>{
-            await db.runAsync(query)
-        })
+        const query = `UPDATE ${this.name} SET ${props} WHERE id=${id}`;
+
+        console.log(query);
+        
+        await db.withTransactionAsync(async ()=>await db.execAsync(query));
     }
 
-    private getKeysIfExistsInsideColumns(data:Omit<T, "id">){
-        const dataKeys = Object.keys(data);
-        const columnsProps = this.columns.map(c=>c.name);
-        return dataKeys.filter(k=>columnsProps.includes(k));
+    private parseDbDataToData = (dbData:KeyValue):T=>{
+        let result:KeyValue = {};
+
+        this.columns.forEach(c=>{
+            if(Object.hasOwn(dbData, c.name))
+                result[c.name] = c.dbValueToValue(dbData[c.name]);
+        })
+
+        return result as T;
+    }
+
+    private parseDataToDbData = (data:T|Omit<T, "id">):KeyValue=>{
+        let result:KeyValue = {};
+
+        this.columns.forEach(c=>{
+            if(Object.hasOwn(data, c.name)) 
+                result[c.name] = c.valueToDbValue(data[c.name]);
+        })
+
+        return result;
     }
 }
 
@@ -119,13 +188,13 @@ export class DB{
         this.tables = {};
     }
 
-    createTable = <T extends {[key:string]:any}>(name:string, columns:ColumnData[])=>{
+    createTable = <T extends KeyValue>(name:string, columns:ColumnData[])=>{
         let newTable = new Table<T>(this, name, columns);
         this.tables[name] = newTable;
         return newTable;
     }
 
-    getTable = <T extends {[key:string]:any}>(name:string)=>{
+    getTable = <T extends KeyValue>(name:string)=>{
         return this.tables[name] as Table<T>;
     }
 

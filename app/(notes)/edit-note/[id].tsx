@@ -10,12 +10,20 @@ export default function EditNoteScreen(){
     const { id } = useLocalSearchParams();
     const idAsNumber = parseInt(id.toString());
 
-    const queryClient = useQueryClient();
+    const [newNote, setNewNote] = useState<Omit<Note, "id">>({ content:"" });
 
+    //Fetch the data at the start
     const { data, error, isSuccess, isLoading, isError } = useQuery({
         queryFn: ()=>noteTable.get(idAsNumber),
-        queryKey:["notes", idAsNumber]
+        queryKey:[]
     })
+
+    useEffect(()=>{
+        if(isSuccess && data) setNewNote(data);
+    },[data, isSuccess])
+
+    //Handle update
+    const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
         mutationFn: (noteData:Omit<Note, "id">)=>noteTable.set(idAsNumber, noteData),
@@ -23,18 +31,8 @@ export default function EditNoteScreen(){
             queryClient.invalidateQueries({queryKey:["notes"]});
             router.navigate("/note-list");
         },
-        onError: (error)=>{
-            console.log(error);
-        }
+        onError: (error)=>console.log(error)
     })
-
-    useEffect(()=>{
-        if(isSuccess && data){
-            setNewNote(data);
-        }
-    },[data, isSuccess])
-
-    const [newNote, setNewNote] = useState<Omit<Note, "id">>({ content:"" });
 
     return <View style={styles.container}>
         {isLoading&&<Text>Loading...</Text>}
