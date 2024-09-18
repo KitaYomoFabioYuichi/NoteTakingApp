@@ -93,6 +93,7 @@ class Table<T extends KeyValue>{
     private create = ()=>{
         const db:SQLite.SQLiteDatabase = this.db.db;
         db.withTransactionSync(()=>{
+            db.execSync(`DROP TABLE IF EXISTS ${this.name};`)
             db.execSync(`CREATE TABLE IF NOT EXISTS ${this.name}(${this.columns.map(c=>c.toCreateTableParameter())});`)
         });
     }
