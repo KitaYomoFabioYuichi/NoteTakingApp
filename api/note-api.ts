@@ -3,14 +3,16 @@ import { Note } from "@/types/note";
 let nextId = 0;
 const notes:Note[] = [];
 
+const waitTime = 0;
+
 export const getAllNotes = async ()=>{
-    await wait(1000);
+    await wait(waitTime);
 
     return notes;
 }
 
 export const getNote = async (id:number)=>{
-    await wait(1000);
+    await wait(waitTime);
 
     const index = notes.findIndex(n=>n.id === id);
     if(index === -1) return undefined;
@@ -18,12 +20,26 @@ export const getNote = async (id:number)=>{
 }
 
 export const addNote = async (data:Omit<Note, "id">)=>{
-    await wait(1000);
+    await wait(waitTime);
 
     notes.push({...data, id:nextId++});
-
-    console.log(notes);
     
+}
+
+export const removeNote = async (id:number)=>{
+    await wait(waitTime);
+
+    const index = notes.findIndex(n=>n.id === id);
+    notes.splice(index, 1);
+}
+
+export const removeMultiple = async (ids:number[])=>{
+    await wait(waitTime);
+
+    ids.forEach(id=>{
+        const index = notes.findIndex(n=>n.id === id);
+        notes.splice(index, 1);
+    })
 }
 
 const wait = (seconds:number)=>{

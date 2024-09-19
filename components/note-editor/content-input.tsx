@@ -20,6 +20,7 @@ export default function ContentInput({
             contentContainerStyle={styles.inputScrollInnerContainer}
         >
             <TextInput
+                placeholder="Description..."
                 style={styles.textInput}
                 value={value}
                 onChangeText={setValue}

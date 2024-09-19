@@ -31,7 +31,7 @@ export default function AddNote() {
 	}
 
 	const isNoteValid = (note:Omit<Note, "id">)=>{
-		return Boolean(note.title && note.content && note.color);
+		return Boolean(note.title);
 	}
 
 	return (
