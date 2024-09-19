@@ -12,7 +12,7 @@ export default function ContentInput({
     setValue,
     editable = true
 }:ContentInputProps){
-    const maxLength = 5000;
+    const maxLength = 2000;
 
     return <View style={styles.container}>
         <ScrollView 

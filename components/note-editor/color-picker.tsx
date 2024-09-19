@@ -1,7 +1,7 @@
 import { GestureResponderEvent, Pressable, StyleSheet, View } from "react-native";
 import CheckIcon from "./check-icon";
 import { NoteColor } from "@/types/note";
-import { NoteColors } from "@/constants/Color";
+import { NoteColorValues } from "@/constants/Color";
 import Button, { ButtonProps } from "@/components/button";
 
 interface ColorPickerProps{
@@ -39,7 +39,7 @@ function ColorButton({
     selected = false,
     ...props
 }:ColorButton){
-    const {fill, border} = NoteColors[color];
+    const {fill, border} = NoteColorValues[color];
 
     return <Button 
         {...props}

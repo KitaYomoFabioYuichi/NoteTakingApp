@@ -39,7 +39,11 @@ export default function AddNote() {
 			<Stack.Screen 
 				options={{
 					title:"New Note",
-					header:props=><EditHeader  onSavePress={handleSave} disabled={!isNoteValid(note)} {...props} />
+					header:props=><EditHeader  
+						onSavePress={handleSave} 
+						disabled={!isNoteValid(note)} 
+						{...props} 
+					/>
 				}}
 			/>
 			<NoteEditor note={note} setNote={setNote} editable={!isPending}/>
