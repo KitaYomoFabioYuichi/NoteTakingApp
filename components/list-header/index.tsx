@@ -1,59 +1,60 @@
 import { getHeaderTitle } from '@react-navigation/elements';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, BackHandler, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+
 import AddIcon from './add-icon';
-import HeaderButton from '@/components/inputs/header-button';
-import { router } from 'expo-router';
 import CancelIcon from './cancel-icon';
 import TrashIcon from './trash-icon';
-import SearchIcon from './search-icon';
-import LimitTextInput from '../inputs/limit-text-input';
-import ColorPicker from '../inputs/color-picker';
-import { NoteColor } from '@/types/note';
+
+import HeaderButton from '@/components/inputs/header-button';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { removeAllNotes } from '@/api/note-api';
+import LoadingModal from '../loading-modal';
 
 interface ListHeaderProps extends NativeStackHeaderProps{
-	queries?:{
-		removeEntries:(ids:number[])=>Promise<void>
-	},
-	selectMode?:{
-		isSelectMode:boolean,
-		selectedEntries:number[],
-		exitSelectMode:()=>void
-	},
-	searchMode?:{
-		isSearchMode:()=>boolean,
-		enterSearchMode: ()=>void,
-		exitSearchMode: ()=>void,
-		filterText:string,
-		filterColor:NoteColor|"",
-		setFilterText:(v:string)=>void,
-		setFilterColor:(v:NoteColor|"")=>void
-	}
+	selectedEntries:number[],
+	setSelectedEntries:(v:number[])=>void
 }
 
 export default function ListHeader({
-	queries = {
-		removeEntries: async (ids:number[])=>{}
-	},
-	selectMode = {
-		isSelectMode: false,
-		selectedEntries: [],
-		exitSelectMode: ()=>{}
-	},
-	searchMode = {
-		isSearchMode: ()=>false,
-		enterSearchMode: ()=>{},
-		exitSearchMode: ()=>{},
-		filterText:"",
-		filterColor:"",
-		setFilterText:(v)=>{},
-		setFilterColor:(v)=>{},
-	},
+	selectedEntries = [],
+	setSelectedEntries = (v:number[])=>{},
+
     options,
     route,
 }:ListHeaderProps){
     const title = getHeaderTitle(options, route.name);
-	const selectedCount = selectMode.selectedEntries.length;
+
+	const selectedCount = selectedEntries.length;
+	const isSelectMode = selectedCount > 0;
+
+	const queryClient = useQueryClient();
+	const {mutateAsync, isPending} = useMutation({
+		mutationFn:removeAllNotes,
+		onSuccess:()=>{
+			queryClient.invalidateQueries({queryKey:["notes"]});
+			setSelectedEntries([]);
+		}
+	})
+
+	useFocusEffect(
+		useCallback(() => {
+			const onBackPress = () => {
+				if(isSelectMode){
+					setSelectedEntries([]);
+					return true;
+				}else{
+					return false;
+				}
+			};
+
+			const subscription = BackHandler.addEventListener( 'hardwareBackPress', onBackPress );
+
+			return () => subscription.remove();
+		}, [selectedEntries])
+	);
 
 	const handleAlert = ()=>{
 		Alert.alert(
@@ -61,58 +62,43 @@ export default function ListHeader({
 			`Are you sure you want to delete the selected ${selectedCount} ${selectedCount>1?"notes":"note"}?`,
 			[
 				{text: "Cancel",style:"cancel"}, 
-				{text:"Accept", onPress:()=>{
-					queries.removeEntries(selectMode.selectedEntries);
-					selectMode.exitSelectMode();
-				}}
+				{text:"Accept", onPress:()=>mutateAsync(selectedEntries)}
 			]
 		)
 	}
 
-	if(selectMode.isSelectMode) return <View style={styles.selectModeContainer}>
-		<View style={styles.buttonContainer}>
-			<HeaderButton onPress={selectMode.exitSelectMode}>
-				<CancelIcon/>
-			</HeaderButton>
-			<Text  style={styles.title}>{selectedCount}</Text>
+	const renderSelectMode = ()=>{
+		return <View style={styles.selectModeContainer}>
+			<View style={styles.buttonContainer}>
+				<HeaderButton onPress={()=>setSelectedEntries([])}>
+					<CancelIcon/>
+				</HeaderButton>
+				<Text style={styles.title}>{selectedCount}</Text>
+			</View>
+			<View style={styles.buttonContainer}>
+				<HeaderButton onPress={handleAlert}>
+					<TrashIcon/>
+				</HeaderButton>
+			</View>
 		</View>
-		<View style={styles.buttonContainer}>
-			<HeaderButton onPress={handleAlert}>
-				<TrashIcon/>
-			</HeaderButton>
-		</View>
-	</View>
+	}
+
+	const render = ()=>{
+		return <>
+			<View style={styles.container}>
+				<Text style={styles.title}>{title}</Text>
+				<View style={styles.buttonContainer}>
+					<HeaderButton onPress={()=>router.navigate("/add-note")}>
+						<AddIcon/>
+					</HeaderButton>
+				</View>
+			</View>
+		</>
+	}
 
     return <View>
-		<View style={styles.container}>
-			<Text style={styles.title}>{title}</Text>
-			<View style={styles.buttonContainer}>
-				<HeaderButton onPress={()=>{
-					if(searchMode.isSearchMode()) searchMode.exitSearchMode()
-					else searchMode.enterSearchMode();
-				}}>
-					<SearchIcon/>
-				</HeaderButton>
-				<HeaderButton onPress={()=>router.navigate("/add-note")}>
-					<AddIcon/>
-				</HeaderButton>
-			</View>
-		</View>
-		{searchMode.isSearchMode()&&<View style={[styles.searchContainer]}>
-			<View style={{flexDirection:'row', gap:8, alignItems:"center"}}>
-				<Text style={styles.searchTitle}>Search: </Text>
-				<LimitTextInput 
-					style={{flex:1}} 
-					value={searchMode.filterText} 
-					setValue={searchMode.setFilterText}
-				/>
-			</View>
-			<ColorPicker 
-				allowEmpty={true} 
-				value={searchMode.filterColor} 
-				setValue={searchMode.setFilterColor}
-			/>
-		</View>}
+		{isPending&&<LoadingModal/>}
+		{isSelectMode?renderSelectMode():render()}
 	</View>
 }
 
@@ -152,8 +138,10 @@ const styles = StyleSheet.create({
 		justifyContent:"space-between",
 	},
 	searchContainer:{
+		marginTop:32,
 		paddingVertical:16,
 		paddingHorizontal:20,
+		paddingTop:22,
 		backgroundColor:"#FFFFFF",
 		borderBottomWidth:1,
 		borderBottomColor:"#E5E7EB",

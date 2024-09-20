@@ -16,13 +16,10 @@ type Filter = {
 
 export const getAllNotes = async (filter:Filter = {searchText:"", searchColor:""})=>{
     await wait(waitTime);
-
-    return notes.filter(n=>{
-        if(n.title.includes(filter.searchText)) return true;
-        else if(n.content.includes(filter.searchText)) return true;
-        else if(n.color.includes(filter.searchColor)) return true;
-        else return false;
-    })
+    
+    return notes
+    .filter(n=>n.content.includes(filter.searchText)||n.title.includes(filter.searchText))
+    .filter(n=>n.color.includes(filter.searchColor));
 }
 
 export const getNote = async (id:number)=>{
@@ -47,7 +44,7 @@ export const removeNote = async (id:number)=>{
     notes.splice(index, 1);
 }
 
-export const removeMultiple = async (ids:number[])=>{
+export const removeAllNotes = async (ids:number[])=>{
     await wait(waitTime);
 
     ids.forEach(id=>{
