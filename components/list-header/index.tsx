@@ -8,39 +8,51 @@ import CancelIcon from './cancel-icon';
 import TrashIcon from './trash-icon';
 
 interface ListHeaderProps extends NativeStackHeaderProps{
-	selectedEntries?:number[],
-	setSelectedEntries?:(value:number[])=>void,
-	handleDelete?:(ids:number[])=>Promise<void>
+	queries?:{
+		removeEntries:(ids:number[])=>Promise<void>
+	},
+	selectMode?:{
+		isSelectMode:boolean,
+		selectedEntries:number[],
+		exitSelectMode:()=>void
+	},
 }
 
 export default function ListHeader({
-	selectedEntries = [],
-	setSelectedEntries = (value:number[])=>{},
-	handleDelete: deleteMultiple = async (ids:number[])=>{},
+	queries = {
+		removeEntries: async (ids:number[])=>{}
+	},
+	selectMode = {
+		isSelectMode: false,
+		selectedEntries: [],
+		exitSelectMode: ()=>{}
+	},
     options,
     route,
 }:ListHeaderProps){
     const title = getHeaderTitle(options, route.name);
+	const selectedCount = selectMode.selectedEntries.length;
 
 	const handleAlert = ()=>{
 		Alert.alert(
 			`Delete notes?`, 
-			`Are you sure you want to delete the selected ${selectedEntries.length} ${selectedEntries.length>1?"notes":"note"}?`,
+			`Are you sure you want to delete the selected ${selectedCount} ${selectedCount>1?"notes":"note"}?`,
 			[
 				{text: "Cancel",style:"cancel"}, 
 				{text:"Accept", onPress:()=>{
-					deleteMultiple(selectedEntries);
+					queries.removeEntries(selectMode.selectedEntries);
+					selectMode.exitSelectMode();
 				}}
 			]
 		)
 	}
 
-	if(selectedEntries.length > 0) return <View style={styles.selectModeContainer}>
+	if(selectMode.isSelectMode) return <View style={styles.selectModeContainer}>
 		<View style={styles.buttonContainer}>
-			<HeaderButton onPress={()=>setSelectedEntries([])}>
+			<HeaderButton onPress={selectMode.exitSelectMode}>
 				<CancelIcon/>
 			</HeaderButton>
-			<Text  style={styles.title}>{selectedEntries.length}</Text>
+			<Text  style={styles.title}>{selectedCount}</Text>
 		</View>
 		<View style={styles.buttonContainer}>
 			<HeaderButton onPress={handleAlert}>

@@ -11,7 +11,7 @@ export interface NoteEntryProps extends ViewProps{
 
 export default function NoteEntry({
     note,
-    selected = true,
+    selected = false,
     onPress,
     onLongPress,
 }:NoteEntryProps){
@@ -31,7 +31,7 @@ export default function NoteEntry({
                 onLongPress={onLongPress}
             >
                 <Text style={styles.title}>{note.title}</Text>
-                {note.content&&<Text style={styles.content} numberOfLines={6}>{note.content}</Text>}
+                {note.content&&<Text style={styles.content}>{note.content}</Text>}
             </Pressable>
         </View>
     </View>

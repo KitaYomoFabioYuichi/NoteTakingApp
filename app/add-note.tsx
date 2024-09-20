@@ -7,7 +7,7 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-export default function AddNote() {
+export default function AddNoteScreen() {
 	const [note, setNote] = useState<Omit<Note, "id">>({
 		title:"",
 		content:"",

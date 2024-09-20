@@ -1,7 +1,11 @@
 import { Note } from "@/types/note";
 
-let nextId = 0;
-const notes:Note[] = [];
+let nextId = 3;
+const notes:Note[] = [
+    {id:0, title:"Note 1", content:"A small note", color:"BLUE"},
+    {id:1, title:"Note 2", content:"Also a small note", color:"WHITE"},
+    {id:2, title:"Lorem Ipsum", content:"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ligula ipsum, convallis ut congue ac, pellentesque sed enim. Sed feugiat mi tortor, nec volutpat lorem aliquet non. Praesent semper et odio at facilisis. Quisque convallis turpis eu pretium pulvinar. Vivamus quis dui ipsum.", color:"RED"}
+];
 
 const waitTime = 0;
 
@@ -40,6 +44,14 @@ export const removeMultiple = async (ids:number[])=>{
         const index = notes.findIndex(n=>n.id === id);
         notes.splice(index, 1);
     })
+}
+
+export const editNote = async (id:number, data:Omit<Note, "id">)=>{
+    await wait(waitTime);
+
+    const index = notes.findIndex(n=>n.id === id);
+    if(index === -1) return;
+    notes[index] = {...notes[index], ...data};
 }
 
 const wait = (seconds:number)=>{
