@@ -2,6 +2,8 @@ import { getAllNotes, removeMultiple } from '@/api/note-api';
 
 import ListHeader from '@/components/list-header';
 import LoadingModal from '@/components/loading-modal';
+import EmptyIcon from '@/components/note-list/empty-icon';
+import NoteArrowIcon from '@/components/note-list/note-arrow-icon';
 import NoteEntry from '@/components/note-list/note-entry';
 
 import { Note } from '@/types/note';
@@ -19,19 +21,12 @@ export default function HomeScreen() {
 
 	//Render
 	if (queries.error) return <View style={styles.centerContainer}>
-		<Text>There was an error: {queries.error.message}</Text>
+		<Text style={styles.emptyText}>There was an error &#9785;</Text>
 	</View>
 
-	return <View style={styles.container}>
-		<Stack.Screen
-			options={{
-				title: "Notes",
-				header: props => <ListHeader queries={queries} selectMode={selectMode} {...props} />
-			}}
-		/>
-		<LoadingModal visible={queries.isLoading}/>
-		<ScrollView contentContainerStyle={styles.scrollInnerContainer}>
-			<View style={styles.noteListContainer}>
+	const renderNotes = ()=>{
+		return <ScrollView contentContainerStyle={styles.scrollInnerContainer}>
+				<View style={styles.noteListContainer}>
 				{[...(queries.entries)].reverse().map(n =><NoteEntry
 					key={n.id}
 					onPress={()=>{
@@ -49,6 +44,31 @@ export default function HomeScreen() {
 				/>)}
 			</View>
 		</ScrollView>
+	}
+
+	const renderEmpty = ()=>{
+		return <View style={styles.emptyContainer}>
+			<View style={styles.emptyIconContainer}>
+				<EmptyIcon/>
+				<Text style={styles.emptyText}>Opps!</Text>
+				<Text style={styles.emptyText}>You have no notes.</Text>
+			</View>
+			<View style={styles.emptyNote}>
+				<NoteArrowIcon/>
+				<Text style={styles.emptyNoteText}>Add a new one here!</Text>
+			</View>
+		</View>
+	}
+
+	return <View style={styles.container}>
+		<Stack.Screen
+			options={{
+				title: "Notes",
+				header: props => <ListHeader queries={queries} selectMode={selectMode} {...props} />
+			}}
+		/>
+		<LoadingModal visible={queries.isLoading}/>
+		{queries.entries.length <= 0?renderEmpty():renderNotes()}
 	</View>
 }
 
@@ -73,6 +93,35 @@ const styles = StyleSheet.create({
 		justifyContent: "flex-start",
 		alignItems: "flex-start",
 		gap: 16,
+	},
+
+	emptyContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "white"
+	},
+	emptyIconContainer:{
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "white"
+	},
+	emptyText:{
+		fontWeight:"bold",
+		fontSize:24,
+		color:"#6B7280"
+	},
+	emptyNote:{
+		position:"absolute",
+		top:25,
+		right:36,
+		width:100,
+		alignItems:"flex-end"
+	},
+	emptyNoteText:{
+		fontSize:14,
+		color:"#6B7280",
+		textAlign:"center"
 	}
 });
 
