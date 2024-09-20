@@ -9,6 +9,7 @@ export default function RootLayout() {
 		<Stack>
 			<Stack.Screen name="index" />
 			<Stack.Screen name="add-note" />
+			<Stack.Screen name="edit-note/[id]" />
 		</Stack>
 	</QueryClientProvider>
 }

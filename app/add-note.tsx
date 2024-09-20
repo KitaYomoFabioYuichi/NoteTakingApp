@@ -7,7 +7,7 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-export default function AddNote() {
+export default function AddNoteScreen() {
 	const [note, setNote] = useState<Omit<Note, "id">>({
 		title:"",
 		content:"",
@@ -31,7 +31,7 @@ export default function AddNote() {
 	}
 
 	const isNoteValid = (note:Omit<Note, "id">)=>{
-		return Boolean(note.title && note.content && note.color);
+		return Boolean(note.title) && Boolean(note.color);
 	}
 
 	return (

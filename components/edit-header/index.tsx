@@ -1,7 +1,7 @@
 import { getHeaderTitle } from '@react-navigation/elements';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { StyleSheet, Text, View } from 'react-native';
-import HeaderButton from '@/components/header-button';
+import HeaderButton from '@/components/inputs/header-button';
 import BackIcon from './back-icon';
 import SaveIcon from './save-icon';
 import { router } from 'expo-router';

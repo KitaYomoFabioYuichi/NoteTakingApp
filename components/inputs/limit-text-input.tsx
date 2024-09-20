@@ -1,25 +1,31 @@
-import { StyleSheet, Text, TextInput, View } from "react-native"
-import TextInputLimitCounter from "./text-input-limit-counter";
+import { StyleProp, StyleSheet, Text, TextInput, TextStyle, View, ViewStyle } from "react-native"
+import TextInputLimitCounter from "./text-input-limit-counter"
 
-interface TitleInputProps{
+export interface LimitTextInputProps{
     value:string,
     setValue:(text:string)=>void,
-    editable?:boolean
+    editable?:boolean,
+    maxLength?:number,
+    style?:StyleProp<ViewStyle>,
+    textInputStyle?:StyleProp<TextStyle>,
+    placeholder?:string
 }
 
-export default function TitleInput({
+export default function LimitTextInput({
     value,
     setValue,
-    editable = true
-}:TitleInputProps){
-    const maxLength = 50;
-
-    return <View style={styles.container}>
+    editable = true,
+    maxLength = 100,
+    style = {},
+    textInputStyle = {},
+    placeholder = ""
+}:LimitTextInputProps){
+    return <View style={[styles.container, style]}>
         <TextInput 
-            style={styles.textInput} 
+            style={[styles.textInput, textInputStyle]} 
             value={value} 
             onChangeText={setValue}
-            placeholder="Title"
+            placeholder={placeholder}
             maxLength={maxLength}
             editable={editable}
         />
@@ -44,8 +50,7 @@ const styles = StyleSheet.create({
         paddingRight:8,
         paddingVertical:8,
         flex:1,
-        fontSize:20,
-        fontWeight:"bold",
+        fontSize:16
     },
     limitCounter:{
         paddingVertical:2,

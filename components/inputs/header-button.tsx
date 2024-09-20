@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import Button, { ButtonProps } from "@/components/button";
+import Button, { ButtonProps } from "./button"; 
 
 export default function HeaderButton({
     children,

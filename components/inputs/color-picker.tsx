@@ -1,13 +1,14 @@
-import { GestureResponderEvent, Pressable, StyleSheet, View } from "react-native";
-import CheckIcon from "./check-icon";
+import { StyleSheet, View } from "react-native";
+import CheckIcon from "../note-editor/check-icon";
 import { NoteColor } from "@/types/note";
 import { NoteColorValues } from "@/constants/Color";
-import Button, { ButtonProps } from "@/components/button";
+import Button, { ButtonProps } from "./button";
 
 interface ColorPickerProps{
-    value:NoteColor,
-    setValue:(value:NoteColor)=>void,
-    editable?:boolean
+    value:NoteColor|"",
+    setValue:(value:NoteColor|"")=>void,
+    editable?:boolean,
+    allowEmpty?:boolean,
 }
 
 const ColorList:NoteColor[] = ["WHITE", "RED", "YELLOW", "GREEN", "BLUE", "PURPLE"];
@@ -15,14 +16,17 @@ const ColorList:NoteColor[] = ["WHITE", "RED", "YELLOW", "GREEN", "BLUE", "PURPL
 export default function ColorPicker({
     value,
     setValue,
-    editable = true
+    editable = true,
+    allowEmpty = false
 }:ColorPickerProps){
     return <View style={styles.container}>
         {ColorList.map(c=><ColorButton 
             key={c} 
             color={c} 
             selected={value===c}
-            onPress={()=>setValue(c)}
+            onPress={()=>{
+                (value===c && allowEmpty)?setValue(""):setValue(c)
+            }}
             disabled={!editable}
             disabledColor="#ffffff80"
         />)}

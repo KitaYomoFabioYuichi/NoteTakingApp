@@ -1,26 +1,31 @@
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import { ScrollView, StyleProp, StyleSheet, Text, TextInput, TextStyle, View } from "react-native"
 import TextInputLimitCounter from "./text-input-limit-counter";
 
-interface ContentInputProps{
+export interface LimitTextInputMultilineProps{
     value:string,
     setValue:(text:string)=>void,
-    editable?:boolean
+    editable?:boolean,
+    maxLength?:number,
+    textInputStyle?:StyleProp<TextStyle>,
+    placeholder?:string
 }
 
-export default function ContentInput({
+export default function LimitTextInputMultiline({
     value,
     setValue,
-    editable = true
-}:ContentInputProps){
-    const maxLength = 2000;
-
+    editable = true,
+    maxLength = 2000,
+    textInputStyle,
+    placeholder = ""
+}:LimitTextInputMultilineProps){
     return <View style={styles.container}>
         <ScrollView 
             style={styles.inputScrollContainer}
             contentContainerStyle={styles.inputScrollInnerContainer}
         >
             <TextInput
-                style={styles.textInput}
+                placeholder={placeholder}
+                style={[styles.textInput, textInputStyle]}
                 value={value}
                 onChangeText={setValue}
                 maxLength={maxLength}
@@ -28,7 +33,7 @@ export default function ContentInput({
                 multiline
             />
         </ScrollView>
-        <TextInputLimitCounter 
+        <TextInputLimitCounter
             style={styles.limitCounter} 
             length={value.length} maxLength={maxLength}
         />
