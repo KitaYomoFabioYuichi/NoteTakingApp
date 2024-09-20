@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native"
 
 interface TextInputLimitCounterProps{
     length:number,
@@ -11,12 +11,12 @@ export default function TextInputLimitCounter({
     maxLength,
     style
 }:TextInputLimitCounterProps){
-    return <View style={[styles.limitCounterContainer, style]}>
-        <Text style={styles.limitCounter}>{length}/{maxLength}</Text>
+    return <View style={[counterStyles.limitCounterContainer, style]}>
+        <Text style={counterStyles.limitCounter}>{length}/{maxLength}</Text>
     </View>
 }
 
-const styles = StyleSheet.create({
+const counterStyles = StyleSheet.create({
     limitCounterContainer:{
         alignItems:"flex-end",
         justifyContent:"flex-end"

@@ -1,10 +1,8 @@
-import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from "react-native";
-import TitleInput from "./title-input";
-import { useState } from "react";
-import ColorPicker from "./color-picker";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import ColorPicker from "@/components/inputs/color-picker";
 import { Note, NoteColor } from "@/types/note";
-import ContentInput from "./content-input";
-import SaveButton from "./save-button";
+import LimitTextInputMultiline from "../inputs/limit-text-input-multiline";
+import LimitTextInput from "../inputs/limit-text-input";
 
 interface NoteEditorProps{
     style?:StyleProp<ViewStyle>,
@@ -24,9 +22,26 @@ export default function NoteEditor({
     const handleSetContent = (content:string)=>setNote({...note, content})
 
     return <View style={[styles.container, style]}>
-        <TitleInput value={note.title} setValue={handleSetTitle} editable={editable}/>
-        <ColorPicker value={note.color} setValue={handleSetColor} editable={editable}/>
-        <ContentInput value={note.content} setValue={handleSetContent} editable={editable}/>
+        <LimitTextInput 
+            maxLength={50} 
+            value={note.title} 
+            setValue={handleSetTitle} 
+            editable={editable}
+            placeholder="Title"
+            textInputStyle={styles.titleInput}
+        />
+        <ColorPicker 
+            value={note.color} 
+            setValue={handleSetColor} 
+            editable={editable}
+        />
+        <LimitTextInputMultiline 
+            maxLength={2000} 
+            value={note.content} 
+            setValue={handleSetContent} 
+            editable={editable}
+            placeholder="Description"
+        />
     </View>
 }
 
@@ -36,5 +51,9 @@ const styles = StyleSheet.create({
         flexDirection:"column",
         gap:16,
         padding:16,
+    },
+    titleInput:{
+        fontSize:20,
+        fontWeight:"bold"
     }
 })

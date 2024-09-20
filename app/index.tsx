@@ -6,18 +6,21 @@ import EmptyIcon from '@/components/note-list/empty-icon';
 import NoteArrowIcon from '@/components/note-list/note-arrow-icon';
 import NoteEntry from '@/components/note-list/note-entry';
 
-import { Note } from '@/types/note';
+import { Note, NoteColor } from '@/types/note';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Href, router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, BackHandler } from 'react-native';
 
 export default function HomeScreen() {
-	//Handle queries
-	const queries = useHandleQuery();
+	//Handle Search mode
+	const searchMode = useHandleSearchMode();
 
 	//Handle Select mode
-	const selectMode = useHandleSelectMode();
+	const selectMode = useSelectMode(searchMode);
+
+	//Handle queries
+	const queries = useHandleQuery(searchMode);
 
 	//Render
 	if (queries.error) return <View style={styles.centerContainer}>
@@ -64,11 +67,16 @@ export default function HomeScreen() {
 		<Stack.Screen
 			options={{
 				title: "Notes",
-				header: props => <ListHeader queries={queries} selectMode={selectMode} {...props} />
+				header: props => <ListHeader 
+					queries={queries} 
+					selectMode={selectMode} 
+					searchMode={searchMode}
+					{...props} 
+				/>
 			}}
 		/>
 		<LoadingModal visible={queries.isLoading}/>
-		{queries.entries.length <= 0?renderEmpty():renderNotes()}
+		{(queries.entries.length <= 0 && !searchMode.isSearchMode())?renderEmpty():renderNotes()}
 	</View>
 }
 
@@ -125,8 +133,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-function useHandleQuery(){
-	const {data, isFetching, error: fetchError} = useQuery({ queryKey: ["notes"], queryFn: getAllNotes });
+function useHandleQuery({ filterText = "", filterColor = "" }:{ filterText:string, filterColor:NoteColor|"" }){
+	const {data, isFetching, error: fetchError} = useQuery({ 
+		queryKey: ["notes"], 
+		queryFn: ()=>getAllNotes() 
+	});
 
 	const queryClient = useQueryClient();
 	const { mutateAsync, error:mutateError } = useMutation({ mutationFn: removeMultiple, onSuccess:()=>{
@@ -135,8 +146,12 @@ function useHandleQuery(){
 
 	const isLoading = isFetching;
 
+	let entries = (data||[])
+	.filter(n=>!filterText || n.title.toLowerCase().includes(filterText.toLowerCase()) || n.content.toLowerCase().includes(filterText.toLowerCase()))
+	.filter(n=>!filterColor || n.color === filterColor);
+
 	return {
-		entries:data||[],
+		entries,
 		error: fetchError || mutateError,
 		mutateError,
 		isLoading,
@@ -144,9 +159,10 @@ function useHandleQuery(){
 	};
 }
 
-function useHandleSelectMode(){
+function useSelectMode({exitSearchMode = ()=>{}}){
 	const [selectedEntries, setSelectedEntries] = useState<number[]>([]);
 	const isSelectMode = selectedEntries.length > 0;
+
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = () => {
@@ -174,6 +190,7 @@ function useHandleSelectMode(){
 	const selectNote = (note:Note)=>{
 		if(isNoteSelected(note)) return;
 		setSelectedEntries([...selectedEntries, note.id]);
+		exitSearchMode();
 	}
 
 	const deselectNote = (note:Note)=>{
@@ -192,5 +209,35 @@ function useHandleSelectMode(){
 		selectNote,
 		deselectNote,
 		exitSelectMode
+	}
+}
+
+function useHandleSearchMode(){
+	const [selectMode, setSelectMode] = useState(false);
+	const [filterText, setFilterText] = useState("");
+	const [filterColor, setFilterColor] = useState<NoteColor|"">("");
+
+	const enterSearchMode = ()=>{
+		setSelectMode(true);
+	}
+
+	const exitSearchMode = ()=>{
+		setSelectMode(false);
+		setFilterText("");
+		setFilterColor("");
+	}
+
+	const isSearchMode = ()=>{
+		return selectMode;
+	}
+
+	return {
+		isSearchMode,
+		enterSearchMode,
+		exitSearchMode,
+		filterText,
+		filterColor,
+		setFilterText,
+		setFilterColor,
 	}
 }

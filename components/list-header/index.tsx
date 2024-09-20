@@ -2,10 +2,14 @@ import { getHeaderTitle } from '@react-navigation/elements';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import AddIcon from './add-icon';
-import HeaderButton from '@/components/header-button';
+import HeaderButton from '@/components/inputs/header-button';
 import { router } from 'expo-router';
 import CancelIcon from './cancel-icon';
 import TrashIcon from './trash-icon';
+import SearchIcon from './search-icon';
+import LimitTextInput from '../inputs/limit-text-input';
+import ColorPicker from '../inputs/color-picker';
+import { NoteColor } from '@/types/note';
 
 interface ListHeaderProps extends NativeStackHeaderProps{
 	queries?:{
@@ -16,6 +20,15 @@ interface ListHeaderProps extends NativeStackHeaderProps{
 		selectedEntries:number[],
 		exitSelectMode:()=>void
 	},
+	searchMode?:{
+		isSearchMode:()=>boolean,
+		enterSearchMode: ()=>void,
+		exitSearchMode: ()=>void,
+		filterText:string,
+		filterColor:NoteColor|"",
+		setFilterText:(v:string)=>void,
+		setFilterColor:(v:NoteColor|"")=>void
+	}
 }
 
 export default function ListHeader({
@@ -26,6 +39,15 @@ export default function ListHeader({
 		isSelectMode: false,
 		selectedEntries: [],
 		exitSelectMode: ()=>{}
+	},
+	searchMode = {
+		isSearchMode: ()=>false,
+		enterSearchMode: ()=>{},
+		exitSearchMode: ()=>{},
+		filterText:"",
+		filterColor:"",
+		setFilterText:(v)=>{},
+		setFilterColor:(v)=>{},
 	},
     options,
     route,
@@ -61,14 +83,37 @@ export default function ListHeader({
 		</View>
 	</View>
 
-    return <View style={styles.container}>
-        <Text style={styles.title}>{title}</Text>
-		<View style={styles.buttonContainer}>
-			<HeaderButton onPress={()=>router.navigate("/add-note")}>
-				<AddIcon/>
-			</HeaderButton>
+    return <View>
+		<View style={styles.container}>
+			<Text style={styles.title}>{title}</Text>
+			<View style={styles.buttonContainer}>
+				<HeaderButton onPress={()=>{
+					if(searchMode.isSearchMode()) searchMode.exitSearchMode()
+					else searchMode.enterSearchMode();
+				}}>
+					<SearchIcon/>
+				</HeaderButton>
+				<HeaderButton onPress={()=>router.navigate("/add-note")}>
+					<AddIcon/>
+				</HeaderButton>
+			</View>
 		</View>
-    </View>
+		{searchMode.isSearchMode()&&<View style={[styles.searchContainer]}>
+			<View style={{flexDirection:'row', gap:8, alignItems:"center"}}>
+				<Text style={styles.searchTitle}>Search: </Text>
+				<LimitTextInput 
+					style={{flex:1}} 
+					value={searchMode.filterText} 
+					setValue={searchMode.setFilterText}
+				/>
+			</View>
+			<ColorPicker 
+				allowEmpty={true} 
+				value={searchMode.filterColor} 
+				setValue={searchMode.setFilterColor}
+			/>
+		</View>}
+	</View>
 }
 
 const styles = StyleSheet.create({
@@ -106,4 +151,17 @@ const styles = StyleSheet.create({
 		alignItems:"center",
 		justifyContent:"space-between",
 	},
+	searchContainer:{
+		paddingVertical:16,
+		paddingHorizontal:20,
+		backgroundColor:"#FFFFFF",
+		borderBottomWidth:1,
+		borderBottomColor:"#E5E7EB",
+		zIndex:-1,
+		gap:16,
+	},
+	searchTitle:{
+		fontSize:20,
+		fontWeight:"bold"
+	}
 })

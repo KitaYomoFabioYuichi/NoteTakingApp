@@ -31,7 +31,7 @@ export default function AddNoteScreen() {
 	}
 
 	const isNoteValid = (note:Omit<Note, "id">)=>{
-		return Boolean(note.title);
+		return Boolean(note.title) && Boolean(note.color);
 	}
 
 	return (

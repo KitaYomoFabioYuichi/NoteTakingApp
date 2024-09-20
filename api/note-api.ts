@@ -1,4 +1,4 @@
-import { Note } from "@/types/note";
+import { Note, NoteColor } from "@/types/note";
 
 let nextId = 3;
 const notes:Note[] = [
@@ -9,10 +9,20 @@ const notes:Note[] = [
 
 const waitTime = 0;
 
-export const getAllNotes = async ()=>{
+type Filter = {
+    searchText:string,
+    searchColor:NoteColor|""
+}
+
+export const getAllNotes = async (filter:Filter = {searchText:"", searchColor:""})=>{
     await wait(waitTime);
 
-    return notes;
+    return notes.filter(n=>{
+        if(n.title.includes(filter.searchText)) return true;
+        else if(n.content.includes(filter.searchText)) return true;
+        else if(n.color.includes(filter.searchColor)) return true;
+        else return false;
+    })
 }
 
 export const getNote = async (id:number)=>{

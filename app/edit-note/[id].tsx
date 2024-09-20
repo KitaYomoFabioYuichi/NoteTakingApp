@@ -59,7 +59,7 @@ function useMutateNote(id:number, data:Omit<Note, "id">){
     })
 
     const isNoteValid = (note:Omit<Note, "id">)=>{
-		return Boolean(note.title);
+		return Boolean(note.title) && Boolean(note.color);
 	}
 
     const handleSave = ()=>{
