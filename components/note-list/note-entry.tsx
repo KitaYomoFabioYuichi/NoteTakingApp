@@ -41,7 +41,7 @@ const decorSize = 20;
 
 const styles = StyleSheet.create({
     selectedOuterContainer:{
-        backgroundColor:"#3b82f610"
+        backgroundColor:"#3b82f630"
     },
     container:{
         borderWidth:1,

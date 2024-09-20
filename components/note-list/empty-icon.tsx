@@ -3,8 +3,8 @@ import Svg, { SvgProps, Path } from "react-native-svg"
 
 const EmptyIcon = (props: SvgProps) => (
   <Svg
-    width={150}
-    height={150}
+    width={100}
+    height={100}
     viewBox="0 0 150 150"
     fill="none"
     {...props}
