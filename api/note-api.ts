@@ -1,66 +1,43 @@
-import { Note, NoteColor } from "@/types/note";
+import { db } from "./db";
+import { Note } from "@/types/note";
 
-let nextId = 3;
-const notes:Note[] = [
-    {id:0, title:"Note 1", content:"A small note", color:"BLUE"},
-    {id:1, title:"Note 2", content:"Also a small note", color:"WHITE"},
-    {id:2, title:"Lorem Ipsum", content:"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ligula ipsum, convallis ut congue ac, pellentesque sed enim. Sed feugiat mi tortor, nec volutpat lorem aliquet non. Praesent semper et odio at facilisis. Quisque convallis turpis eu pretium pulvinar. Vivamus quis dui ipsum.", color:"RED"}
-];
+db.withTransactionSync(()=>{
+    db.execSync(`CREATE TABLE IF NOT EXISTS tb_notes(
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        color TEXT NOT NULL,
+        createTime DATETIME,
+        lastUpdateTime DATETIME
+    )`)
+})
 
-const waitTime = 0;
-
-type Filter = {
-    searchText:string,
-    searchColor:NoteColor|""
-}
-
-export const getAllNotes = async (filter:Filter = {searchText:"", searchColor:""})=>{
-    await wait(waitTime);
-    
-    return notes
-    .filter(n=>n.content.includes(filter.searchText)||n.title.includes(filter.searchText))
-    .filter(n=>n.color.includes(filter.searchColor));
+export const getAllNotes = async ()=>{
+    const query = `SELECT * FROM tb_notes`;
+    console.log(query);
+    return await db.getAllAsync(query) as Note[]
 }
 
 export const getNote = async (id:number)=>{
-    await wait(waitTime);
-
-    const index = notes.findIndex(n=>n.id === id);
-    if(index === -1) return undefined;
-    return notes[index];
+    const query = `SELECT * FROM tb_notes WHERE id='${id}'`;
+    console.log(query);
+    return await db.getFirstAsync(query) as Note
 }
 
 export const addNote = async (data:Omit<Note, "id">)=>{
-    await wait(waitTime);
-
-    notes.push({...data, id:nextId++});
-    
-}
-
-export const removeNote = async (id:number)=>{
-    await wait(waitTime);
-
-    const index = notes.findIndex(n=>n.id === id);
-    notes.splice(index, 1);
+    const query = `INSERT INTO tb_notes(title, content, color, createTime, lastUpdateTime) VALUES('${data.title}', '${data.content}', '${data.color}', '${data.createTime}', '${data.lastUpdateTime}')`;
+    console.log(query);
+    await db.withTransactionAsync(async ()=>db.execAsync(query))
 }
 
 export const removeAllNotes = async (ids:number[])=>{
-    await wait(waitTime);
-
-    ids.forEach(id=>{
-        const index = notes.findIndex(n=>n.id === id);
-        notes.splice(index, 1);
-    })
+    const query = `DELETE FROM tb_notes WHERE id in (${ids})`;
+    console.log(query);
+    await db.withTransactionAsync(async ()=>db.execAsync(query))
 }
 
 export const editNote = async (id:number, data:Omit<Note, "id">)=>{
-    await wait(waitTime);
-
-    const index = notes.findIndex(n=>n.id === id);
-    if(index === -1) return;
-    notes[index] = {...notes[index], ...data};
-}
-
-const wait = (seconds:number)=>{
-    return new Promise(resolve=>setTimeout(resolve,seconds));
+    const query = `UPDATE tb_notes SET title='${data.title}', content='${data.content}', color='${data.color}', lastUpdateTime='${data.lastUpdateTime}' WHERE id=${id} `;
+    console.log(query);
+    await db.withTransactionAsync(async ()=>db.execAsync(query))
 }

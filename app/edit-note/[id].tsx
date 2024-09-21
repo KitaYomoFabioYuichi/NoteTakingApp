@@ -43,6 +43,8 @@ function useFetchNote(id:number, onFetchSuccess = (note:Note)=>{}){
 
     useEffect(()=>{
         if(data) onFetchSuccess(data);
+        console.log(data);
+        
     },[data])
 
     return {fetchLoading:isLoading, fetchError:error}
@@ -64,7 +66,7 @@ function useMutateNote(id:number, data:Omit<Note, "id">){
 
     const handleSave = ()=>{
 		if(!isNoteValid(data)) return;
-		mutateAsync(data);
+		mutateAsync({...data, lastUpdateTime: new Date()});
 	}
 
     return {handleSave, isNoteValid, mutateLoading:isPending, mutateError:error}

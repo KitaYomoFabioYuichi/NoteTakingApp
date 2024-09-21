@@ -27,7 +27,7 @@ export default function AddNoteScreen() {
 
 	const handleSave = ()=>{
 		if(!isNoteValid(note)) return;
-		mutateAsync(note);
+		mutateAsync({...note, createTime:new Date(), lastUpdateTime:new Date()});
 	}
 
 	const isNoteValid = (note:Omit<Note, "id">)=>{

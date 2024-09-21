@@ -7,5 +7,4 @@ export type Note = {
     color:NoteColor;
     createTime?:Date;
     lastUpdateTime?:Date;
-    test?:number;
 }
