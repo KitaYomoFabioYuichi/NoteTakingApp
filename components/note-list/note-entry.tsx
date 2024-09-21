@@ -1,6 +1,7 @@
 import { NoteColorValues } from "@/constants/Color";
 import { Note } from "@/types/note";
 import { Pressable, StyleSheet, Text, View, ViewProps } from "react-native";
+import Animated, { LinearTransition, Easing } from 'react-native-reanimated';
 
 export interface NoteEntryProps extends ViewProps{
     note:Note,
@@ -17,7 +18,10 @@ export default function NoteEntry({
 }:NoteEntryProps){
     const { fill, border, fillShade } = NoteColorValues[note.color];
 
-    return <View style={[selected&&styles.selectedOuterContainer]}>
+    return <Animated.View 
+        layout={LinearTransition.easing(Easing.inOut(Easing.quad))}
+        style={[selected&&styles.selectedOuterContainer]}
+    >
         <View style={[
             selected&&styles.selected,
             styles.container, 
@@ -34,7 +38,7 @@ export default function NoteEntry({
                 {note.content&&<Text style={styles.content} numberOfLines={6}>{note.content}</Text>}
             </Pressable>
         </View>
-    </View>
+    </Animated.View>
 }
 
 const decorSize = 20;

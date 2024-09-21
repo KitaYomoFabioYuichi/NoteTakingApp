@@ -2,7 +2,6 @@ import { getAllNotes } from "@/api/note-api";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import NoteEntry from "./note-entry";
-import { Note, NoteColor } from "@/types/note";
 import { Href, router } from "expo-router";
 import EmptyIcon from "./empty-icon";
 import NoteArrowIcon from "./note-arrow-icon";
@@ -11,7 +10,6 @@ interface NoteListProps{
     selectedEntries:number[],
     setSelectedEntries:(v:number[])=>void
 }
-
 
 export default function NoteList({
     selectedEntries,
@@ -51,7 +49,7 @@ export default function NoteList({
 	}
 
     const renderNotes = ()=>{
-        return <ScrollView>
+        return <ScrollView contentContainerStyle={{flexGrow: 1}}>
             <View style={styles.noteListContainer}>
                 {[...entries].reverse().map(note=>{
                     const selected = selectedEntries.includes(note.id);
