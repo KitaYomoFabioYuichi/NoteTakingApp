@@ -1,4 +1,4 @@
-# Note taking app 👋
+# Note Taking App 👋
 
 This is a simple Note Taking App created with [Expo](https://expo.dev) and [React Native](https://reactnative.dev/). It allows users to take and save notes.
 
